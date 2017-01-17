@@ -51,7 +51,7 @@ def echo_and_run_cmd(cmd):
         print("Error message:\n%s" % stderr)
         print_stars()
         # fixme
-        print(runme("tree /data.nfs/LHAB"))
+        print(runme("tree --charset unicode /data.nfs/LHAB"))
 
     else:
         print("[ok]")
