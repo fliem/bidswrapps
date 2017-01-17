@@ -49,6 +49,10 @@ def echo_and_run_cmd(cmd):
         print("Output message:\n%s" % stdout)
         print_stars()
         print("Error message:\n%s" % stderr)
+        print_stars()
+        # fixme
+        print(runme("tree /data.nfs/LHAB"))
+
     else:
         print("[ok]")
         print_stars()

@@ -72,8 +72,8 @@ class BidsWrappsApplication(Application):
 
         # fixme
         # wrapper = resource_filename(Requirement.parse("gc3pie"), "gc3libs/etc/echo_and_run_cmd.py")
-        # script_dir = os.path.abspath(os.path.dirname(sys.argv[0]))
-        wrapper = "/home/ubuntu/gtrac_long_repo/gc3pie/gc3libs/etc/echo_and_run_cmd.py"
+        script_dir = os.path.abspath(os.path.dirname(sys.argv[0]))
+        wrapper = os.path.join(script_dir, "echo_and_run_cmd.py")
         inputs[wrapper] = os.path.basename(wrapper)
 
         # fixme add ro again, after dcm2niix release
