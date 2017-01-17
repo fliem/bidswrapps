@@ -58,8 +58,9 @@ class BidsWrappsApplication(Application):
                  bids_input_folder,
                  bids_output_folder,
                  docker_image,
-                 runscript_args,
-                 docker_volumes = [],
+                 runscript_args="",
+                 runscript_cmd="",
+                 docker_volumes=[],
                  **extra_args):
         # self.application_name = "freesurfer"
         # conf file freesurfer_image
@@ -83,12 +84,12 @@ class BidsWrappsApplication(Application):
         additional_volumes = " -v ".join([""] + docker_volumes)
         docker_mappings = "-v %s -v %s %s" % (docker_cmd_input_mapping, docker_cmd_output_mapping, additional_volumes)
 
-
-        docker_cmd = "docker run {docker_mappings} {docker_image}".format(docker_mappings=docker_mappings,
-                                                                          docker_image=docker_image)
+        docker_cmd = "docker run {docker_mappings} {docker_image} ".format(docker_mappings=docker_mappings,
+                                                                           docker_image=docker_image)
 
         # runscript = runscript, runscript_args = runscript_args)
-        wf_cmd = "/data/in  /data/out {analysis_level} ".format(analysis_level=analysis_level)
+        wf_cmd = "{docker_exec_cmd} /data/in  /data/out {analysis_level} ".format(docker_exec_cmd=runscript_cmd,
+                                                                                   analysis_level=analysis_level)
         if subject_id:
             wf_cmd += "--participant_label {subject_id} ".format(subject_id=subject_id)
         if runscript_args:
@@ -171,6 +172,10 @@ class BidsWrappsScript(SessionBasedScript):
                                          "Shoud be given as /local_path:/path_inside_docker[:permissions], e.g.:"
                                          "/data/project/freesurfer:/freesurfer. "
                                          "Multiple volumes can be specified with a space separated list", nargs="+")
+
+        self.add_param("--runscript_cmd", help='If docker image has now entrypoint, docker execution '
+                                               'command can be given here (under ""). '
+                                               'E.g.: --docker_exec_cmd "python /code/dosomething.py')
         self.add_param("-ra", "--runscript_args", type=str, dest="runscript_args", default=None,
                        help='BIDS Apps: add application-specific arguments '
                             'passed to the runscripts in qotation marks: '
@@ -266,6 +271,7 @@ class BidsWrappsScript(SessionBasedScript):
                     self.params.bids_input_folder,
                     self.params.bids_output_folder,
                     self.params.docker_image,
+                    self.params.runscript_cmd,
                     self.params.runscript_args,
                     self.params.volumes,
                     **extra_args))
@@ -281,6 +287,7 @@ class BidsWrappsScript(SessionBasedScript):
                 self.params.bids_input_folder,
                 self.params.bids_output_folder,
                 self.params.docker_image,
+                self.params.runscript_cmd,
                 self.params.runscript_args,
                 self.params.volumes,
                 **extra_args))
