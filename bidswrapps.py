@@ -59,7 +59,7 @@ class BidsWrappsApplication(Application):
                  bids_output_folder,
                  docker_image,
                  runscript_args,
-                 docker_volumes,
+                 docker_volumes = [],
                  **extra_args):
         # self.application_name = "freesurfer"
         # conf file freesurfer_image
@@ -80,7 +80,7 @@ class BidsWrappsApplication(Application):
         docker_cmd_input_mapping = "{bids_input_folder}:/data/in".format(bids_input_folder=bids_input_folder)
 
         docker_cmd_output_mapping = "{bids_output_folder}:/data/out".format(bids_output_folder=bids_output_folder)
-        additional_volumes = " -v ".join([""]+ docker_volumes)
+        additional_volumes = " -v ".join([""] + docker_volumes)
         docker_mappings = "-v %s -v %s %s" % (docker_cmd_input_mapping, docker_cmd_output_mapping, additional_volumes)
 
 
