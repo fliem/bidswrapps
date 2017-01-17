@@ -1,36 +1,8 @@
 #! /usr/bin/env python
-#
-#   bidswrapps.py -- Front-end script for running the docking program rDock
-#   over a list of ligand files.
-#
-#   Copyright (C) 2014, 2015 S3IT, University of Zurich
-#
-#   This program is free software: you can redistribute it and/or
-#   modify
-#   it under the terms of the GNU General Public License as published by
-#   the Free Software Foundation, either version 3 of the License, or
-#   (at your option) any later version.
-#
-#   This program is distributed in the hope that it will be useful,
-#   but WITHOUT ANY WARRANTY; without even the implied warranty of
-#   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-#   GNU General Public License for more details.
-#
-#   You should have received a copy of the GNU General Public License
-#   along with this program.  If not, see <http://www.gnu.org/licenses/>.
-#
+
 """
-
-It uses the generic `gc3libs.cmdline.SessionBasedScript` framework.
-
-See the output of ``bidswrapps.py --help`` for program usage
-instructions.
-
-Input parameters consists of:
-
-...
-
-Options:
+Based on https://github.com/uzh/gc3pie/blob/master/gc3apps/inapic/gtrac.py
+by Sergio Maffioletti (https://github.com/smaffiol)
 """
 
 # fixme
@@ -41,20 +13,11 @@ Options:
 # TODO allow participant_label on group level
 
 
-__version__ = 'development version (SVN $Revision$)'
-# summary of user-visible changes
+__version__ = 'v0.0.1.dev'
 __changelog__ = """
   2016-12-12:
   * Initial version
 """
-__author__ = 'Franz Liem <franziskus.liem@uzh.ch>'
-__docformat__ = 'reStructuredText'
-
-
-if __name__ == "__main__":
-    import bidswrapps
-
-    bidswrapps.BidsWrappsScript().run()
 
 import os
 import sys
@@ -96,6 +59,7 @@ class BidsWrappsApplication(Application):
                  bids_output_folder,
                  docker_image,
                  runscript_args,
+                 docker_volumes,
                  **extra_args):
         # self.application_name = "freesurfer"
         # conf file freesurfer_image
@@ -116,11 +80,12 @@ class BidsWrappsApplication(Application):
         docker_cmd_input_mapping = "{bids_input_folder}:/data/in".format(bids_input_folder=bids_input_folder)
 
         docker_cmd_output_mapping = "{bids_output_folder}:/data/out".format(bids_output_folder=bids_output_folder)
+        additional_volumes = " -v ".join([""]+ docker_volumes)
+        docker_mappings = "-v %s -v %s %s" % (docker_cmd_input_mapping, docker_cmd_output_mapping, additional_volumes)
 
-        docker_mappings = "-v %s -v %s " % (docker_cmd_input_mapping, docker_cmd_output_mapping)
+
         docker_cmd = "docker run {docker_mappings} {docker_image}".format(docker_mappings=docker_mappings,
                                                                           docker_image=docker_image)
-
 
         # runscript = runscript, runscript_args = runscript_args)
         wf_cmd = "/data/in  /data/out {analysis_level} ".format(analysis_level=analysis_level)
@@ -130,7 +95,6 @@ class BidsWrappsApplication(Application):
             wf_cmd += "{runscript_args} ".format(runscript_args=runscript_args)
 
         cmd = " {docker_cmd} {wf_cmd}".format(docker_cmd=docker_cmd, wf_cmd=wf_cmd)
-
 
         Application.__init__(self,
                              arguments="python ./%s %s" % (inputs[wrapper], cmd),
@@ -203,7 +167,10 @@ class BidsWrappsScript(SessionBasedScript):
         self.add_param("-pef", "--participant_exclusion_file",
                        help='A tsv file with the labels of the participant that should not be analyzed, '
                             'despite being listed in --participant_file.')
-
+        self.add_param("--volumes", help="Additional volumes that should be mounted in the docker call."
+                                         "Shoud be given as /local_path:/path_inside_docker[:permissions], e.g.:"
+                                         "/data/project/freesurfer:/freesurfer. "
+                                         "Multiple volumes can be specified with a space separated list", nargs="+")
         self.add_param("-ra", "--runscript_args", type=str, dest="runscript_args", default=None,
                        help='BIDS Apps: add application-specific arguments '
                             'passed to the runscripts in qotation marks: '
@@ -300,6 +267,7 @@ class BidsWrappsScript(SessionBasedScript):
                     self.params.bids_output_folder,
                     self.params.docker_image,
                     self.params.runscript_args,
+                    self.params.volumes,
                     **extra_args))
 
         elif self.params.analysis_level.startswith("group"):
@@ -314,6 +282,7 @@ class BidsWrappsScript(SessionBasedScript):
                 self.params.bids_output_folder,
                 self.params.docker_image,
                 self.params.runscript_args,
+                self.params.volumes,
                 **extra_args))
 
         return tasks
@@ -323,3 +292,7 @@ class BidsWrappsScript(SessionBasedScript):
         """
         layout = BIDSLayout(bids_input_folder)
         return layout.get_subjects()
+
+
+if __name__ == "__main__":
+    BidsWrappsScript().run()
