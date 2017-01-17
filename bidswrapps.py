@@ -58,8 +58,8 @@ class BidsWrappsApplication(Application):
                  bids_input_folder,
                  bids_output_folder,
                  docker_image,
-                 runscript_args="",
                  runscript_cmd="",
+                 runscript_args="",
                  docker_volumes=[],
                  **extra_args):
         # self.application_name = "freesurfer"
