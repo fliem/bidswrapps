@@ -84,12 +84,11 @@ class BidsWrappsApplication(Application):
         additional_volumes = " -v ".join([""] + docker_volumes)
         docker_mappings = "-v %s -v %s %s" % (docker_cmd_input_mapping, docker_cmd_output_mapping, additional_volumes)
 
-        docker_cmd = "docker run {docker_mappings} {docker_image} ".format(docker_mappings=docker_mappings,
-                                                                           docker_image=docker_image)
+        docker_cmd = "docker run {docker_mappings} {docker_image} {runscript_cmd} ".format(
+            docker_mappings=docker_mappings, docker_image=docker_image, runscript_cmd=runscript_cmd)
 
         # runscript = runscript, runscript_args = runscript_args)
-        wf_cmd = "{docker_exec_cmd} /data/in  /data/out {analysis_level} ".format(docker_exec_cmd=runscript_cmd,
-                                                                                   analysis_level=analysis_level)
+        wf_cmd = "/data/in  /data/out {analysis_level} ".format(analysis_level=analysis_level)
         if subject_id:
             wf_cmd += "--participant_label {subject_id} ".format(subject_id=subject_id)
         if runscript_args:
