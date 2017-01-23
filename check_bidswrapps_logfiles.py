@@ -2,8 +2,6 @@ import argparse
 import os
 from glob import glob
 
-
-
 parser = argparse.ArgumentParser(description='Checks bidsapps logfiles')
 parser.add_argument('logfiles_dir', help='The directory with the bidsapps logfile folders.')
 args = parser.parse_args()
@@ -25,13 +23,12 @@ for f in files:
     else:
         bad.append(jobname)
 
-print("*"*30)
+print("*" * 30)
 print("ok jobs", good)
-print("*"*30)
+print("*" * 30)
 print("bad jobs", bad)
-print("*"*30)
-print("*"*30)
+print("*" * 30)
+print("*" * 30)
 
-
-print("%s ok jobs"%len(good))
-print("%s bad jobs"%len(bad))
+print("%s ok jobs" % len(good))
+print("%s bad jobs" % len(bad))
