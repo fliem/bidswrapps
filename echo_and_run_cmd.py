@@ -7,8 +7,10 @@ def Usage():
     print("Usage: echo_and_run_cmd.py <cmd>")
     print("Echoes and runs command")
 
+
 def print_stars():
     print("********************************")
+
 
 def runme(command):
     """
@@ -27,7 +29,10 @@ def runme(command):
     return (proc.returncode, stdout, stderr)
 
 
-def echo_and_run_cmd(cmd):
+def echo_and_run_cmd(cmd, tree_dir=""):
+    """
+    Run cmd. If error is returned, tree tree_dir (if specified)
+    """
     (ret, stdout, stderr) = runme(cmd)
 
     # format byte return
@@ -50,8 +55,8 @@ def echo_and_run_cmd(cmd):
         print_stars()
         print("Error message:\n%s" % stderr)
         print_stars()
-        # fixme
-        print(runme("tree --charset unicode /data.nfs/LHAB"))
+        if tree_dir:
+            print(runme("tree --charset unicode %s" % tree_dir))
 
     else:
         print("[ok]")
@@ -66,8 +71,4 @@ if __name__ == '__main__':
     if (len(sys.argv) < 2):
         sys.exit(Usage())
     cmd = ' '.join(sys.argv[1:])
-    #fixme
-    # os.system("tree /data.nfs")
-    # os.system("ls -la /data.nfs/BIDS/")
-    # os.system("echo XXXXXXXXXXXXXXXXXX")
     sys.exit(echo_and_run_cmd(cmd))
