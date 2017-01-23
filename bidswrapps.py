@@ -20,24 +20,18 @@ __changelog__ = """
 """
 
 import os
-import sys
-import time
-import tempfile
-import re
 import stat
-
-import shutil
-from bids.grabbids import BIDSLayout
-
-from pkg_resources import Requirement, resource_filename
+import sys
 
 import gc3libs
 import gc3libs.exceptions
-from gc3libs import Application, Run, Task
-from gc3libs.cmdline import SessionBasedScript, executable_file, positive_int
 import gc3libs.utils
-from gc3libs.quantity import Memory, kB, MB, MiB, GB, Duration, hours, minutes, seconds
-from gc3libs.workflow import RetryableTask
+from bids.grabbids import BIDSLayout
+from gc3libs import Application
+from gc3libs.cmdline import SessionBasedScript, positive_int
+from gc3libs.quantity import Memory, MB, GB
+
+from utils import compile_run_cmd
 
 DEFAULT_CORES = 2
 DEFAULT_MEMORY = Memory(4000, MB)
@@ -70,33 +64,12 @@ class BidsWrappsApplication(Application):
         outputs = dict()
         self.output_dir = extra_args['output_dir']
 
-        # fixme
-        # wrapper = resource_filename(Requirement.parse("gc3pie"), "gc3libs/etc/echo_and_run_cmd.py")
         script_dir = os.path.abspath(os.path.dirname(sys.argv[0]))
         wrapper = os.path.join(script_dir, "echo_and_run_cmd.py")
         inputs[wrapper] = os.path.basename(wrapper)
 
-        # fixme add ro again, after dcm2niix release
-        # docker_cmd_input_mapping = "{bids_input_folder}:/data/in:ro".format(bids_input_folder=bids_input_folder)
-        docker_cmd_input_mapping = "{bids_input_folder}:/data/in".format(bids_input_folder=bids_input_folder)
-
-        docker_cmd_output_mapping = "{bids_output_folder}:/data/out".format(bids_output_folder=bids_output_folder)
-        additional_volumes = " -v ".join([""] + docker_volumes)
-        docker_mappings = "-v %s -v %s %s" % (docker_cmd_input_mapping, docker_cmd_output_mapping, additional_volumes)
-
-        docker_cmd = "docker run {docker_mappings} {docker_image} ".format(docker_mappings=docker_mappings,
-                                                                           docker_image=docker_image)
-        if runscript_cmd:
-            docker_cmd += "%s " % runscript_cmd
-
-        # runscript = runscript, runscript_args = runscript_args)
-        wf_cmd = "/data/in  /data/out {analysis_level} ".format(analysis_level=analysis_level)
-        if subject_id:
-            wf_cmd += "--participant_label {subject_id} ".format(subject_id=subject_id)
-        if runscript_args:
-            wf_cmd += "{runscript_args} ".format(runscript_args=runscript_args)
-
-        cmd = " {docker_cmd} {wf_cmd}".format(docker_cmd=docker_cmd, wf_cmd=wf_cmd)
+        cmd = compile_run_cmd(analysis_level, bids_input_folder, bids_output_folder, docker_image, subject_id,
+                                   docker_volumes, runscript_args, runscript_cmd)
 
         Application.__init__(self,
                              arguments="python ./%s %s" % (inputs[wrapper], cmd),
