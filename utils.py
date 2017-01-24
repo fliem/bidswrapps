@@ -15,8 +15,8 @@ def compile_run_cmd(analysis_level, bids_input_folder, bids_output_folder, docke
     docker_cmd_output_mapping = "{bids_output_folder}:/data/out".format(bids_output_folder=bids_output_folder)
     docker_mappings = "-v %s -v %s" % (docker_cmd_input_mapping, docker_cmd_output_mapping)
 
-    additional_volumes = " -v ".join([""] + docker_volumes)
-    if additional_volumes:
+    if docker_volumes:
+        additional_volumes = " -v ".join([""] + docker_volumes)
         docker_mappings += additional_volumes
     docker_cmd = "docker run {docker_mappings} {docker_image}".format(docker_mappings=docker_mappings,
                                                                       docker_image=docker_image)
