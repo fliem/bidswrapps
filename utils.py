@@ -15,7 +15,7 @@ def compile_run_cmd(analysis_level, bids_input_folder, bids_output_folder, docke
 
     # fixme add ro again, after dcm2niix release
     # docker_cmd_input_mapping = "{bids_input_folder}:/data/in:ro".format(bids_input_folder=bids_input_folder)
-    docker_cmd_input_mapping = "{bids_input_folder}:/data/in".format(bids_input_folder=bids_input_folder)
+    docker_cmd_input_mapping = "{bids_input_folder}:/data/in:ro".format(bids_input_folder=bids_input_folder)
     docker_cmd_output_mapping = "{bids_output_folder}:/data/out".format(bids_output_folder=bids_output_folder)
     docker_mappings = "-v %s -v %s" % (docker_cmd_input_mapping, docker_cmd_output_mapping)
 
