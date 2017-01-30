@@ -257,7 +257,7 @@ class BidsWrappsScript(SessionBasedScript):
             extra_args['output_dir'] = extra_args['output_dir'].replace('NAME', '%s' % extra_args['jobname'])
             tasks.append(BidsWrappsApplication(
                 self.params.analysis_level,
-                None,  # subject_id
+                subject_list,
                 self.params.bids_input_folder,
                 self.params.bids_output_folder,
                 self.params.docker_image,

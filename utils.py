@@ -9,6 +9,10 @@ def compile_run_cmd(analysis_level, bids_input_folder, bids_output_folder, docke
     [runscript_args]
     """
 
+    if isinstance(subject_id, list):
+        # for multiple subjects pass as space sep list
+        subject_id = " ".join(subject_id)
+
     # fixme add ro again, after dcm2niix release
     # docker_cmd_input_mapping = "{bids_input_folder}:/data/in:ro".format(bids_input_folder=bids_input_folder)
     docker_cmd_input_mapping = "{bids_input_folder}:/data/in".format(bids_input_folder=bids_input_folder)
