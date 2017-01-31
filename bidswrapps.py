@@ -174,6 +174,12 @@ class BidsWrappsScript(SessionBasedScript):
                             " followed by a unit, e.g., '512MB' or '4GB'."
                             " NOTE: Parameter is NOT piped into BIDS Apps' mem_mb. Specifiy --mem_mb as -ra")
 
+        # self.add_param("--bidswrapps_instance_type", type=str, default="2cpu-8ram-hpc",
+        #                help="Type of science cloud instance for execution. Default is 2cpu-8ram-hpc")
+        # self.add_param("--bidswrapps_image_id", type=str, default="65d8edae-024e-4420-bc45-00a744329f60",
+        #                help="Type of science cloud image for execution. Default is "
+        #                     "65d8edae-024e-4420-bc45-00a744329f60")
+
     def new_tasks(self, extra):
         """
         For each subject, create an instance of GniftApplication

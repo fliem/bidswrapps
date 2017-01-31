@@ -1,3 +1,7 @@
+import configparser
+import datetime
+import os
+
 
 def compile_run_cmd(analysis_level, bids_input_folder, bids_output_folder, docker_image, subject_id="",
                     docker_volumes=[], runscript_args="", runscript_cmd=""):
@@ -38,3 +42,33 @@ def compile_run_cmd(analysis_level, bids_input_folder, bids_output_folder, docke
     cmd = "{docker_cmd}{wf_cmd}".format(docker_cmd=docker_cmd, wf_cmd=wf_cmd)
 
     return cmd
+
+
+def update_config_file(info_dict, input_config_file="~/.gc3/gc3pie.conf", output_config_dir="~/bidswrapps_conf",
+                       filename_info=""):
+    """
+    updates a gc3pie config file with data stored in info_dict
+    info_dict = {
+        "section1": {"key1.1":"value1.1", "key1.2":"value1.2"},
+        "section2": {"key2.1":"value2.1", "key2.2":"value2.2"} }
+    """
+
+    import configparser
+    config = configparser.ConfigParser()
+    config.read(input_config_file)
+
+    for section in info_dict.keys():
+        print(section)
+        for key, value in info_dict[section].items():
+            config[section][key] = value
+
+    ap = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
+    if filename_info:
+        ap = "%s_%s"%(filename_info, ap)
+    output_conf_file = os.path.join(os.path.expanduser(output_config_dir), "bidswrappsConf_%s.gc3pie.conf" % ap)
+    if not os.path.isdir(output_config_dir):
+        os.makedirs(output_config_dir)
+    with open(output_conf_file, "w") as fi:
+        config.write(fi)
+
+    return os.path.abspath(output_conf_file)
