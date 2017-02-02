@@ -1,46 +1,154 @@
-#! /usr/bin/env python
-
-"""
-Based on https://github.com/uzh/gc3pie/blob/master/gc3apps/inapic/gtrac.py
-by Sergio Maffioletti (https://github.com/smaffiol)
-"""
-
-# fixme
-# TODO move to own repo (echo_and_run_cmd into same folder; -> script_dir)
-# specify exec instance id & flavour via command, not conf file? no write to conf file
-# TODO riccardo how to log
-# TODO clean way to add volumes to docker
-# TODO allow participant_label on group level
-
-
-__version__ = 'v0.0.1.dev'
-__changelog__ = """
-  2016-12-12:
-  * Initial version
-"""
-
+import datetime
 import os
 import stat
+import subprocess
 import sys
+from pkg_resources import resource_filename,Requirement
 
 import gc3libs
-import gc3libs.exceptions
-import gc3libs.utils
-from bids.grabbids import BIDSLayout
-from gc3libs import Application
+from gc3libs import MB, Application
 from gc3libs.cmdline import SessionBasedScript, positive_int
-from gc3libs.quantity import Memory, MB, GB
+from gc3libs.quantity import Memory, GB
 
-from utils import compile_run_cmd
+from bids.grabbids import BIDSLayout
+from bidswrapps import __version__
 
-DEFAULT_CORES = 2
-DEFAULT_MEMORY = Memory(4000, MB)
 
-DEFAULT_REMOTE_INPUT_FOLDER = "./"
-DEFAULT_REMOTE_OUTPUT_FOLDER = "./output"
+def runme(command):
+    """
+    Comodity function to run commands using `subprocess` module
+    Input: command to run
+    Output: none
+    Raise Exception in case command fails
+    """
+    proc = subprocess.Popen(
+        [command],
+        shell=True,
+        stderr=subprocess.PIPE,
+        stdout=subprocess.PIPE)
+
+    (stdout, stderr) = proc.communicate()
+    return (proc.returncode, stdout, stderr)
+
+
+def echo_and_run_cmd(cmd, tree_dir=""):
+    """
+    Run cmd. If error is returned, tree tree_dir (if specified)
+    """
+    (ret, stdout, stderr) = runme(cmd)
+
+    # format byte return
+    try:
+        stdout = stdout.decode("utf-8")
+    except:
+        pass
+    try:
+        stderr = stderr.decode("utf-8")
+    except:
+        pass
+
+    if ret != 0:
+        print("[failed]")
+        print_stars()
+        print("[failed]:\n%s" % cmd)
+        print("Execution failed with exit code: %d" % ret)
+        print_stars()
+        print("Output message:\n%s" % stdout)
+        print_stars()
+        print("Error message:\n%s" % stderr)
+        print_stars()
+        if tree_dir:
+            print(runme("tree --charset unicode %s" % tree_dir))
+
+    else:
+        print("[ok]")
+        print_stars()
+        print("[ok]:\n%s \n" % cmd)
+        print(stdout)
+    print("[COMMAND]:\n'%s' " % cmd)
+    return ret
+
+
+def compile_run_cmd(analysis_level, bids_input_folder, bids_output_folder, docker_image, subject_id="",
+                    docker_volumes=[], runscript_args="", runscript_cmd=""):
+    """
+    compiles docker command:
+    "docker run -v <bids_input_folder>:/data/in -v <bids_output_folder>:/data/out -v \
+    [-v additional_docker_volumes:additional_docker_mounts] \
+    docker_image [runscript_cmd] /data/in /data/out <analysis_level> [--participant_label <participant_label>] \
+    [runscript_args]
+    """
+
+    if isinstance(subject_id, list):
+        # for multiple subjects pass as space sep list
+        subject_id = " ".join(subject_id)
+
+    # fixme add ro again, after dcm2niix release
+    # docker_cmd_input_mapping = "{bids_input_folder}:/data/in:ro".format(bids_input_folder=bids_input_folder)
+    docker_cmd_input_mapping = "{bids_input_folder}:/data/in:ro".format(bids_input_folder=bids_input_folder)
+    docker_cmd_output_mapping = "{bids_output_folder}:/data/out".format(bids_output_folder=bids_output_folder)
+    docker_mappings = "-v %s -v %s" % (docker_cmd_input_mapping, docker_cmd_output_mapping)
+
+    if docker_volumes:
+        additional_volumes = " -v ".join([""] + docker_volumes)
+        docker_mappings += additional_volumes
+    docker_cmd = "docker run {docker_mappings} {docker_image}".format(docker_mappings=docker_mappings,
+                                                                      docker_image=docker_image)
+    if runscript_cmd:
+        docker_cmd += " %s" % runscript_cmd
+
+    wf_cmd = " /data/in /data/out {analysis_level}".format(analysis_level=analysis_level)
+
+    if subject_id:
+        wf_cmd += " --participant_label {subject_id}".format(subject_id=subject_id)
+
+    if runscript_args:
+        wf_cmd += " {runscript_args}".format(runscript_args=runscript_args)
+
+    cmd = "{docker_cmd}{wf_cmd}".format(docker_cmd=docker_cmd, wf_cmd=wf_cmd)
+
+    return cmd
+
+
+def update_config_file(info_dict, input_config_file="~/.gc3/gc3pie.conf", output_config_dir="~/bidswrapps_conf",
+                       filename_info=""):
+    """
+    updates a gc3pie config file with data stored in info_dict
+    info_dict = {
+        "section1": {"key1.1":"value1.1", "key1.2":"value1.2"},
+        "section2": {"key2.1":"value2.1", "key2.2":"value2.2"} }
+    """
+
+    import configparser
+    config = configparser.ConfigParser()
+    config.read(input_config_file)
+
+    for section in info_dict.keys():
+        print(section)
+        for key, value in info_dict[section].items():
+            config[section][key] = value
+
+    ap = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
+    if filename_info:
+        ap = "%s_%s"%(filename_info, ap)
+    output_conf_file = os.path.join(os.path.expanduser(output_config_dir), "bidswrappsConf_%s.gc3pie.conf" % ap)
+    if not os.path.isdir(output_config_dir):
+        os.makedirs(output_config_dir)
+    with open(output_conf_file, "w") as fi:
+        config.write(fi)
+
+    return os.path.abspath(output_conf_file)
+
+
 
 
 ## custom application class
+
+DEFAULT_CORES = 2
+DEFAULT_MEMORY = Memory(4000, MB)
+DEFAULT_REMOTE_INPUT_FOLDER = "./"
+DEFAULT_REMOTE_OUTPUT_FOLDER = "./output"
+
 class BidsWrappsApplication(Application):
     """
     """
@@ -65,7 +173,7 @@ class BidsWrappsApplication(Application):
         self.output_dir = extra_args['output_dir']
 
         script_dir = os.path.abspath(os.path.dirname(sys.argv[0]))
-        wrapper = os.path.join(script_dir, "echo_and_run_cmd.py")
+        wrapper = resource_filename(Requirement.parse("bidswrapps"), 'bidswrapps/bidswrapps_echo_and_run_cmd.py')
         inputs[wrapper] = os.path.basename(wrapper)
 
         cmd = compile_run_cmd(analysis_level, bids_input_folder, bids_output_folder, docker_image, subject_id,
@@ -83,15 +191,20 @@ class BidsWrappsApplication(Application):
         #
 
 
+"""
+Based on https://github.com/uzh/gc3pie/blob/master/gc3apps/inapic/gtrac.py
+by Sergio Maffioletti (https://github.com/smaffiol)
+"""
+
 class BidsWrappsScript(SessionBasedScript):
     """
-    
+
     The ``bidswrapps`` command keeps a record of jobs (submitted, executed
     and pending) in a session file (set name with the ``-s`` option); at
     each invocation of the command, the status of all recorded jobs is
     updated, output from finished jobs is collected, and a summary table
     of all known jobs is printed.
-    
+
     Options can specify a maximum number of jobs that should be in
     'SUBMITTED' or 'RUNNING' state; ``gnift`` will delay submission of
     newly-created jobs so that this limit is never exceeded.
@@ -281,5 +394,5 @@ class BidsWrappsScript(SessionBasedScript):
         return layout.get_subjects()
 
 
-if __name__ == "__main__":
-    BidsWrappsScript().run()
+def print_stars():
+    print("********************************")

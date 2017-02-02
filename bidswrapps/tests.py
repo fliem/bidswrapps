@@ -1,4 +1,4 @@
-from utils import compile_run_cmd
+from bidswrapps.utils import compile_run_cmd
 
 
 def test_basic():
