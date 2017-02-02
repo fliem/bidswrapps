@@ -3,7 +3,7 @@
 import argparse
 import os
 from glob import glob
-from bidswrapps.utils import print_stars
+from bidswrapps.bidswrapps_echo_and_run_cmd import print_stars
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Checks bidsapps logfiles')

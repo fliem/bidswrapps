@@ -1,72 +1,16 @@
 import datetime
 import os
 import stat
-import subprocess
 import sys
-from pkg_resources import resource_filename,Requirement
 
 import gc3libs
+from bids.grabbids import BIDSLayout
 from gc3libs import MB, Application
 from gc3libs.cmdline import SessionBasedScript, positive_int
 from gc3libs.quantity import Memory, GB
+from pkg_resources import resource_filename,Requirement
 
-from bids.grabbids import BIDSLayout
 from bidswrapps import __version__
-
-
-def runme(command):
-    """
-    Comodity function to run commands using `subprocess` module
-    Input: command to run
-    Output: none
-    Raise Exception in case command fails
-    """
-    proc = subprocess.Popen(
-        [command],
-        shell=True,
-        stderr=subprocess.PIPE,
-        stdout=subprocess.PIPE)
-
-    (stdout, stderr) = proc.communicate()
-    return (proc.returncode, stdout, stderr)
-
-
-def echo_and_run_cmd(cmd, tree_dir=""):
-    """
-    Run cmd. If error is returned, tree tree_dir (if specified)
-    """
-    (ret, stdout, stderr) = runme(cmd)
-
-    # format byte return
-    try:
-        stdout = stdout.decode("utf-8")
-    except:
-        pass
-    try:
-        stderr = stderr.decode("utf-8")
-    except:
-        pass
-
-    if ret != 0:
-        print("[failed]")
-        print_stars()
-        print("[failed]:\n%s" % cmd)
-        print("Execution failed with exit code: %d" % ret)
-        print_stars()
-        print("Output message:\n%s" % stdout)
-        print_stars()
-        print("Error message:\n%s" % stderr)
-        print_stars()
-        if tree_dir:
-            print(runme("tree --charset unicode %s" % tree_dir))
-
-    else:
-        print("[ok]")
-        print_stars()
-        print("[ok]:\n%s \n" % cmd)
-        print(stdout)
-    print("[COMMAND]:\n'%s' " % cmd)
-    return ret
 
 
 def compile_run_cmd(analysis_level, bids_input_folder, bids_output_folder, docker_image, subject_id="",
@@ -394,5 +338,3 @@ class BidsWrappsScript(SessionBasedScript):
         return layout.get_subjects()
 
 
-def print_stars():
-    print("********************************")
