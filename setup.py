@@ -23,7 +23,7 @@ PACKAGES = find_packages()
 def check_dependencies():
     # Just make sure dependencies exist, I haven't rigorously
     # tested what the minimal versions that will work are
-    needed_deps = ["gc3pie"]
+    needed_deps = []
     missing_deps = []
     for dep in needed_deps:
         try:
