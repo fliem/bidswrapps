@@ -3,6 +3,26 @@ import subprocess
 import sys
 
 
+def runme(command):
+    """
+    Comodity function to run commands using `subprocess` module
+    Input: command to run
+    Output: none
+    Raise Exception in case command fails
+    """
+    proc = subprocess.Popen(
+        [command],
+        shell=True,
+        stderr=subprocess.PIPE,
+        stdout=subprocess.PIPE)
+
+    (stdout, stderr) = proc.communicate()
+    return (proc.returncode, stdout, stderr)
+
+
+def print_stars():
+    print("********************************")
+
 def Usage():
     print("Usage: bidswrapps_echo_and_run_cmd.py <cmd>")
     print("Echoes and runs command")
@@ -52,23 +72,3 @@ if __name__ == '__main__':
     cmd = ' '.join(sys.argv[1:])
     sys.exit(echo_and_run_cmd(cmd))
 
-
-def runme(command):
-    """
-    Comodity function to run commands using `subprocess` module
-    Input: command to run
-    Output: none
-    Raise Exception in case command fails
-    """
-    proc = subprocess.Popen(
-        [command],
-        shell=True,
-        stderr=subprocess.PIPE,
-        stdout=subprocess.PIPE)
-
-    (stdout, stderr) = proc.communicate()
-    return (proc.returncode, stdout, stderr)
-
-
-def print_stars():
-    print("********************************")
