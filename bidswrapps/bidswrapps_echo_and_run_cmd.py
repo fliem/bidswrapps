@@ -23,6 +23,7 @@ def runme(command):
 def print_stars():
     print("********************************")
 
+
 def Usage():
     print("Usage: bidswrapps_echo_and_run_cmd.py <cmd>")
     print("Echoes and runs command")
@@ -71,4 +72,3 @@ if __name__ == '__main__':
         sys.exit(Usage())
     cmd = ' '.join(sys.argv[1:])
     sys.exit(echo_and_run_cmd(cmd))
-
