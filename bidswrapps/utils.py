@@ -8,7 +8,7 @@ from bids.grabbids import BIDSLayout
 from gc3libs import MB, Application
 from gc3libs.cmdline import SessionBasedScript, positive_int
 from gc3libs.quantity import Memory, GB
-from pkg_resources import resource_filename,Requirement
+from pkg_resources import resource_filename, Requirement
 
 from bidswrapps import __version__
 
@@ -54,37 +54,6 @@ def compile_run_cmd(analysis_level, bids_input_folder, bids_output_folder, docke
     return cmd
 
 
-def update_config_file(info_dict, input_config_file="~/.gc3/gc3pie.conf", output_config_dir="~/bidswrapps_conf",
-                       filename_info=""):
-    """
-    updates a gc3pie config file with data stored in info_dict
-    info_dict = {
-        "section1": {"key1.1":"value1.1", "key1.2":"value1.2"},
-        "section2": {"key2.1":"value2.1", "key2.2":"value2.2"} }
-    """
-
-    import configparser
-    config = configparser.ConfigParser()
-    config.read(input_config_file)
-
-    for section in info_dict.keys():
-        print(section)
-        for key, value in info_dict[section].items():
-            config[section][key] = value
-
-    ap = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
-    if filename_info:
-        ap = "%s_%s"%(filename_info, ap)
-    output_conf_file = os.path.join(os.path.expanduser(output_config_dir), "bidswrappsConf_%s.gc3pie.conf" % ap)
-    if not os.path.isdir(output_config_dir):
-        os.makedirs(output_config_dir)
-    with open(output_conf_file, "w") as fi:
-        config.write(fi)
-
-    return os.path.abspath(output_conf_file)
-
-
-
 
 ## custom application class
 
@@ -92,6 +61,7 @@ DEFAULT_CORES = 2
 DEFAULT_MEMORY = Memory(4000, MB)
 DEFAULT_REMOTE_INPUT_FOLDER = "./"
 DEFAULT_REMOTE_OUTPUT_FOLDER = "./output"
+
 
 class BidsWrappsApplication(Application):
     """
@@ -108,9 +78,7 @@ class BidsWrappsApplication(Application):
                  runscript_args="",
                  docker_volumes=[],
                  **extra_args):
-        # self.application_name = "freesurfer"
-        # conf file freesurfer_image
-        self.output_dir = []  # extra_args['output_dir']
+        self.output_dir = []
 
         inputs = dict()
         outputs = dict()
@@ -121,7 +89,7 @@ class BidsWrappsApplication(Application):
         inputs[wrapper] = os.path.basename(wrapper)
 
         cmd = compile_run_cmd(analysis_level, bids_input_folder, bids_output_folder, docker_image, subject_id,
-                                   docker_volumes, runscript_args, runscript_cmd)
+                              docker_volumes, runscript_args, runscript_cmd)
 
         Application.__init__(self,
                              arguments="python ./%s %s" % (inputs[wrapper], cmd),
@@ -139,6 +107,7 @@ class BidsWrappsApplication(Application):
 Based on https://github.com/uzh/gc3pie/blob/master/gc3apps/inapic/gtrac.py
 by Sergio Maffioletti (https://github.com/smaffiol)
 """
+
 
 class BidsWrappsScript(SessionBasedScript):
     """
@@ -239,29 +208,35 @@ class BidsWrappsScript(SessionBasedScript):
                             "image_id is determined by config file.")
 
     def pre_run(self):
+        """
+        If instance_type or image_id are specified in the command line,
+        override config file settings.
+        """
         SessionBasedScript.pre_run(self)
         if self.params.instance_type:
-            self._core.resources['S3ITSC'].instance_type = self.params.instance_type
+            self._core.resources['S3ITSC'].bidswrapps_instance_type = self.params.instance_type
         if self.params.image_id:
-            self._core.resources['S3ITSC'].image_id = self.params.image_id
+            self._core.resources['S3ITSC'].bidswrapps_image_id = self.params.image_id
 
-
-    def new_tasks(self, extra):
+    def get_subject_list(self):
         """
-        For each subject, create an instance of GniftApplication
+        build subject list form either input arguments (participant_label, participant_file) or
+        (if participant_label and participant_file are not specified) input data in bids_input_folder,
+        then remove subjects form list according to participant_exclusion_file (if any)
         """
-
-        tasks = []
         subject_list = []
 
-        # build subject list form either input arguments (participant_label, participant_file) or
-        # input data in bids_input_folder,
-        # then remove subjects form list according to participant_exclusion_file (if any)
         def read_subject_list(list_file):
             "reads text file with subject id per line and returns as list"
             with open(list_file) as fi:
                 l = fi.read().strip().split("\n")
             return [s.strip() for s in l]
+
+        def get_input_subjects(bids_input_folder):
+            """
+            """
+            layout = BIDSLayout(bids_input_folder)
+            return layout.get_subjects()
 
         if self.params.participant_label:
             clean_list = [s.strip() for s in self.params.participant_label]
@@ -271,7 +246,7 @@ class BidsWrappsScript(SessionBasedScript):
             subject_list += read_subject_list(self.params.participant_file)
 
         if not subject_list:
-            subject_list = self.get_input_subjects(self.params.bids_input_folder)
+            subject_list = get_input_subjects(self.params.bids_input_folder)
 
         # force unique
         subject_list = list(set(subject_list))
@@ -289,20 +264,39 @@ class BidsWrappsScript(SessionBasedScript):
                 subject_list.remove(exsub)
             else:
                 gc3libs.log.warning("Subject on exclusion list, but not in inclusion list: %s" % exsub)
+        return subject_list
 
-        # create output folder and check permission (others need write permission)
-        # Riccardo: on the NFS filesystem, `root` is remapped transparently to user
-        # `nobody` (this is called "root squashing"), which cannot write on the
-        # `/data/nfs` directory owned by user `ubuntu`.
+    def create_output_folder(self):
+        """
+        create output folder and check permission (others need write permission)
+        Riccardo: on the NFS filesystem, `root` is remapped transparently to user
+        `nobody` (this is called "root squashing"), which cannot write on the
+        `/data/nfs` directory owned by user `ubuntu`.
+        """
         if not os.path.exists(self.params.bids_output_folder):
             os.makedirs(self.params.bids_output_folder)
             # add write perm for others
-            os.chmod(self.params.bids_output_folder, os.stat(self.params.bids_output_folder).st_mode | stat.S_IWOTH)
+            os.chmod(self.params.bids_output_folder,
+                     os.stat(self.params.bids_output_folder).st_mode | stat.S_IWOTH)
 
         # check if output folder has others write permission
         if not os.stat(self.params.bids_output_folder).st_mode & stat.S_IWOTH:
             raise OSError("BIDS output folder %s \nothers need write permission. "
                           "Stopping." % self.params.bids_output_folder)
+
+    def new_tasks(self, extra):
+        """
+        - Builds subject list (from cmd line args or input folder)
+        - Creates output folder
+        - If participant level analysis
+            For each subject, create one instance of GniftApplication
+        - If group level analysis
+            For entire study, create one instance of GniftApplication
+        """
+
+        tasks = []
+        subject_list = self.get_subject_list()
+        self.create_output_folder()
 
         if self.params.analysis_level.startswith("participant"):
             for subject_id in subject_list:
@@ -340,11 +334,3 @@ class BidsWrappsScript(SessionBasedScript):
                 **extra_args))
 
         return tasks
-
-    def get_input_subjects(self, bids_input_folder):
-        """
-        """
-        layout = BIDSLayout(bids_input_folder)
-        return layout.get_subjects()
-
-
