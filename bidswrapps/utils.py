@@ -200,10 +200,10 @@ class BidsWrappsScript(SessionBasedScript):
                             " followed by a unit, e.g., '512MB' or '4GB'."
                             " NOTE: Parameter is NOT piped into BIDS Apps' mem_mb. Specifiy --mem_mb as -ra")
 
-        self.add_param("--instance_type", type=str,
+        self.add_param("--instance_type", type=str, dest="instance_type",
                        help="Type of science cloud instance for execution. If none is specified, "
                             "instance type is determined by config file.")
-        self.add_param("--image_id", type=str,
+        self.add_param("--image_id", type=str, dest="image_id",
                        help="Type of science cloud image for execution. If none is specified, "
                             "image_id is determined by config file.")
 
