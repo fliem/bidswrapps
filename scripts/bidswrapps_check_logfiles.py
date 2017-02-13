@@ -11,7 +11,7 @@ if __name__ == "__main__":
                         help='The directory with the bidsapps logfile folders. Default: current directory')
     args = parser.parse_args()
 
-    os.chdir(args.logfiles_dir)
+    os.chdir(os.path.abspath(args.logfiles_dir))
 
     files = glob("*/*.log")
     good = []
