@@ -325,7 +325,7 @@ class BidsWrappsScript(SessionBasedScript):
                     self.params.runscript_cmd,
                     self.params.runscript_args,
                     self.params.volumes,
-                    self.input_ro,
+                    self.params.input_ro,
                     **extra_args))
 
         elif self.params.analysis_level.startswith("group"):
@@ -342,7 +342,7 @@ class BidsWrappsScript(SessionBasedScript):
                 self.params.runscript_cmd,
                 self.params.runscript_args,
                 self.params.volumes,
-                self.input_ro,
+                self.params.input_ro,
                 **extra_args))
 
         return tasks
