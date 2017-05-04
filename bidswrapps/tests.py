@@ -39,6 +39,27 @@ def test_basic_group():
     assert cmd == correct_cmd, "cmd:\n%s\n does not macht correct cmd:\n%s"%(cmd, correct_cmd)
 
 
+def test_basic_group_noro():
+    """test basic bids app group use case withou input ro"""
+    analysis_level = "group"
+    bids_input_folder = "/bids_in_data"
+    bids_output_folder = "/bids_out_data"
+    docker_image = "testorg/testim:dev"
+    subject_id = ""
+    docker_volumes = []
+    runscript_args = ""
+    runscript_cmd = ""
+    input_ro=False
+    correct_cmd = "docker run -v /bids_in_data:/data/in -v /bids_out_data:/data/out testorg/testim:dev /data/in " \
+                  "/data/out group"
+
+    cmd = compile_run_cmd(analysis_level, bids_input_folder, bids_output_folder, docker_image, subject_id,
+                          docker_volumes=docker_volumes, runscript_args=runscript_args, runscript_cmd=runscript_cmd,\
+          input_ro=input_ro)
+
+    assert cmd == correct_cmd, "cmd:\n%s\n does not macht correct cmd:\n%s"%(cmd, correct_cmd)
+
+
 
 def test_additional_vols():
     """test additional mount vol use case"""

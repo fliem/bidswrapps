@@ -14,7 +14,7 @@ from bidswrapps import __version__
 
 
 def compile_run_cmd(analysis_level, bids_input_folder, bids_output_folder, docker_image, subject_id="",
-                    docker_volumes=[], runscript_args="", runscript_cmd=""):
+                    docker_volumes=[], runscript_args="", runscript_cmd="", input_ro=True):
     """
     compiles docker command:
     "docker run -v <bids_input_folder>:/data/in -v <bids_output_folder>:/data/out -v \
@@ -29,7 +29,13 @@ def compile_run_cmd(analysis_level, bids_input_folder, bids_output_folder, docke
 
     # fixme add ro again, after dcm2niix release
     # docker_cmd_input_mapping = "{bids_input_folder}:/data/in:ro".format(bids_input_folder=bids_input_folder)
-    docker_cmd_input_mapping = "{bids_input_folder}:/data/in:ro".format(bids_input_folder=bids_input_folder)
+    if input_ro:
+        ro_str = ":ro"
+    else:
+        ro_str = ""
+
+    docker_cmd_input_mapping = "{bids_input_folder}:/data/in{ro_str}".format(bids_input_folder=bids_input_folder,
+                                                                             ro_str=ro_str)
     docker_cmd_output_mapping = "{bids_output_folder}:/data/out".format(bids_output_folder=bids_output_folder)
     docker_mappings = "-v %s -v %s" % (docker_cmd_input_mapping, docker_cmd_output_mapping)
 
@@ -77,6 +83,7 @@ class BidsWrappsApplication(Application):
                  runscript_cmd="",
                  runscript_args="",
                  docker_volumes=[],
+                 input_ro=True,
                  **extra_args):
         self.output_dir = []
 
@@ -89,7 +96,7 @@ class BidsWrappsApplication(Application):
         inputs[wrapper] = os.path.basename(wrapper)
 
         cmd = compile_run_cmd(analysis_level, bids_input_folder, bids_output_folder, docker_image, subject_id,
-                              docker_volumes, runscript_args, runscript_cmd)
+                              docker_volumes, runscript_args, runscript_cmd, input_ro)
 
         Application.__init__(self,
                              arguments="python ./%s %s" % (inputs[wrapper], cmd),
@@ -180,6 +187,9 @@ class BidsWrappsScript(SessionBasedScript):
                        help='BIDS Apps: add application-specific arguments '
                             'passed to the runscripts in qotation marks: '
                             'e.g. \"--license_key xx\" ')
+
+        self.add_param('--no-input-folder-ro', help="don't make input_folder read only. handle with care.",
+                            default=True, dest="input_ro", action='store_false')
 
         # Overwrite script input options to get more specific help
         self.add_param("-o", "--output", type=str, dest="output", default=None,
@@ -315,6 +325,7 @@ class BidsWrappsScript(SessionBasedScript):
                     self.params.runscript_cmd,
                     self.params.runscript_args,
                     self.params.volumes,
+                    self.input_ro,
                     **extra_args))
 
         elif self.params.analysis_level.startswith("group"):
