@@ -342,6 +342,7 @@ class BidsWrappsScript(SessionBasedScript):
                 self.params.runscript_cmd,
                 self.params.runscript_args,
                 self.params.volumes,
+                self.input_ro,
                 **extra_args))
 
         return tasks
