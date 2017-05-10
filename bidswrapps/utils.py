@@ -89,6 +89,7 @@ class BidsWrappsApplication(Application):
                  runscript_args="",
                  docker_volumes=[],
                  input_ro=True,
+                 docker_opt="",
                  **extra_args):
         self.output_dir = []
 
