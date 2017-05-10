@@ -172,3 +172,26 @@ def test_full_cmd():
                           docker_volumes=docker_volumes, runscript_args=runscript_args, runscript_cmd=runscript_cmd)
 
     assert cmd == correct_cmd, "cmd:\n%s\n does not macht correct cmd:\n%s"%(cmd, correct_cmd)
+
+
+
+def test_docker_options():
+    """test full cmd"""
+    analysis_level = "participant"
+    bids_input_folder = "/bids_in_data"
+    bids_output_folder = "/bids_out_data"
+    docker_image = "testorg/testim:dev"
+    subject_id = "sub-11"
+    docker_volumes = ["/project/vol1:/data/vol1", "/project/vol2:/data/vol2"]
+    runscript_args = "--testarg1 a --testarg2 b"
+    runscript_cmd = "python run.py"
+    docker_opt = "--entrypoint=/bin/bash"
+    correct_cmd = "docker run -v /bids_in_data:/data/in:ro -v /bids_out_data:/data/out -v /project/vol1:/data/vol1 " \
+                  "-v /project/vol2:/data/vol2 --entrypoint=/bin/bash testorg/testim:dev " \
+                  "python run.py /data/in /data/out participant --participant_label sub-11 --testarg1 a --testarg2 b"
+
+    cmd = compile_run_cmd(analysis_level, bids_input_folder, bids_output_folder, docker_image, subject_id,
+                          docker_volumes=docker_volumes, runscript_args=runscript_args, runscript_cmd=runscript_cmd,
+                          docker_opt=docker_opt)
+
+    assert cmd == correct_cmd, "cmd:\n%s\n does not macht correct cmd:\n%s"%(cmd, correct_cmd)

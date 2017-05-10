@@ -14,7 +14,7 @@ from bidswrapps import __version__
 
 
 def compile_run_cmd(analysis_level, bids_input_folder, bids_output_folder, docker_image, subject_id="",
-                    docker_volumes=[], runscript_args="", runscript_cmd="", input_ro=True):
+                    docker_volumes=[], runscript_args="", runscript_cmd="", input_ro=True, docker_opt=""):
     """
     compiles docker command:
     "docker run -v <bids_input_folder>:/data/in -v <bids_output_folder>:/data/out -v \
@@ -42,8 +42,14 @@ def compile_run_cmd(analysis_level, bids_input_folder, bids_output_folder, docke
     if docker_volumes:
         additional_volumes = " -v ".join([""] + docker_volumes)
         docker_mappings += additional_volumes
-    docker_cmd = "docker run {docker_mappings} {docker_image}".format(docker_mappings=docker_mappings,
-                                                                      docker_image=docker_image)
+
+    docker_cmd = "docker run %s" % docker_mappings
+
+    if docker_opt:
+        docker_cmd += " %s" % docker_opt
+
+    docker_cmd += " %s" % docker_image
+
     if runscript_cmd:
         docker_cmd += " %s" % runscript_cmd
 
@@ -58,7 +64,6 @@ def compile_run_cmd(analysis_level, bids_input_folder, bids_output_folder, docke
     cmd = "{docker_cmd}{wf_cmd}".format(docker_cmd=docker_cmd, wf_cmd=wf_cmd)
 
     return cmd
-
 
 
 ## custom application class
@@ -96,7 +101,7 @@ class BidsWrappsApplication(Application):
         inputs[wrapper] = os.path.basename(wrapper)
 
         cmd = compile_run_cmd(analysis_level, bids_input_folder, bids_output_folder, docker_image, subject_id,
-                              docker_volumes, runscript_args, runscript_cmd, input_ro)
+                              docker_volumes, runscript_args, runscript_cmd, input_ro, docker_opt=docker_opt)
 
         Application.__init__(self,
                              arguments="python ./%s %s" % (inputs[wrapper], cmd),
@@ -187,9 +192,12 @@ class BidsWrappsScript(SessionBasedScript):
                        help='BIDS Apps: add application-specific arguments '
                             'passed to the runscripts in qotation marks: '
                             'e.g. \"--license_key xx\" ')
-
+        self.add_param("--docker_opt", type=str, default="",
+                       help='Additional docker options '
+                            'passed to the runscripts in qotation marks: '
+                            'e.g. \"--entrypoint=/bin/bash \" ')
         self.add_param('--no-input-folder-ro', help="don't make input_folder read only. handle with care.",
-                            default=True, dest="input_ro", action='store_false')
+                       default=True, dest="input_ro", action='store_false')
 
         # Overwrite script input options to get more specific help
         self.add_param("-o", "--output", type=str, dest="output", default=None,
@@ -326,6 +334,7 @@ class BidsWrappsScript(SessionBasedScript):
                     self.params.runscript_args,
                     self.params.volumes,
                     self.params.input_ro,
+                    self.params.docker_opt,
                     **extra_args))
 
         elif self.params.analysis_level.startswith("group"):
@@ -343,6 +352,7 @@ class BidsWrappsScript(SessionBasedScript):
                 self.params.runscript_args,
                 self.params.volumes,
                 self.params.input_ro,
+                self.params.docker_opt,
                 **extra_args))
 
         return tasks
