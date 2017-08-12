@@ -1,7 +1,9 @@
 #! /usr/bin/env python
 import subprocess
 import sys
-
+import os
+import time
+import argparse
 
 def runme(command):
     """
@@ -29,10 +31,30 @@ def Usage():
     print("Echoes and runs command")
 
 
-def echo_and_run_cmd(cmd, tree_dir=""):
+def echo_and_run_cmd(cmd, tree_dir="", wait_for_nfs=True, nfs_search_path="/data.nfs"):
     """
     Run cmd. If error is returned, tree tree_dir (if specified)
     """
+    out_list = []
+    if wait_for_nfs:
+        nfs_found = False
+        wait_time = 10
+        timeout = 100
+        count_time = 0
+        out_list.append("Looking for {} ...".format(nfs_search_path))
+        while (not nfs_found) and (count_time < timeout):
+            if os.path.isdir(nfs_search_path):
+                nfs_found=True
+                out_list.append("{} found. Start computing...".format(nfs_search_path))
+            else:
+                out_list.append("{} not found. Waiting for {} seconds...".format(nfs_search_path, wait_time))
+                time.sleep(wait_time)
+                count_time+= wait_time
+        if not nfs_found:
+            print("[failed]")
+            print("\n".join(out_list))
+            raise Exception("NFS {} could not be mounted. Abort.".format(nfs_search_path))
+
     (ret, stdout, stderr) = runme(cmd)
 
     # format byte return
@@ -68,7 +90,14 @@ def echo_and_run_cmd(cmd, tree_dir=""):
 
 
 if __name__ == '__main__':
-    if (len(sys.argv) < 2):
-        sys.exit(Usage())
-    cmd = ' '.join(sys.argv[1:])
-    sys.exit(echo_and_run_cmd(cmd))
+
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--cmd', required=True, nargs="+")
+    parser.add_argument("--dont_wait_for_nfs", help="Don't wait for nfs before running docker", dest="wait_for_nfs",
+                   action='store_false', default=True)
+    parser.add_argument("--nfs_search_path", help="Path that should be waited for. Default:/data.nfs",
+                   default="/data.nfs")
+    args = parser.parse_args()
+
+    cmd = ' '.join(args.cmd)
+    sys.exit(echo_and_run_cmd(cmd, "", args.wait_for_nfs, args.nfs_search_path))

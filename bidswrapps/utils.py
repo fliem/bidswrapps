@@ -90,6 +90,8 @@ class BidsWrappsApplication(Application):
                  docker_volumes=[],
                  input_ro=True,
                  docker_opt="",
+                 wait_for_nfs=True,
+                 nfs_search_path="/data.nfs",
                  **extra_args):
         self.output_dir = []
 
@@ -102,10 +104,17 @@ class BidsWrappsApplication(Application):
         inputs[wrapper] = os.path.basename(wrapper)
 
         cmd = compile_run_cmd(analysis_level, bids_input_folder, bids_output_folder, docker_image, subject_id,
-                              docker_volumes, runscript_args, runscript_cmd, input_ro, docker_opt=docker_opt)
+                              docker_volumes, runscript_args, runscript_cmd, input_ro, docker_opt)
+
+        add_opts = ""
+        if not wait_for_nfs:
+            add_opts += "--dont_wait_for_nfs "
+        if nfs_search_path:
+            add_opts += "--nfs_search_path {}".format(nfs_search_path)
 
         Application.__init__(self,
-                             arguments="python ./%s %s" % (inputs[wrapper], cmd),
+                             arguments="python ./{scr} --cmd {cmd} {add_opts}".format(scr=inputs[wrapper], cmd=cmd,
+                                                                                      add_opts=add_opts),
                              inputs=inputs,
                              outputs=[DEFAULT_REMOTE_OUTPUT_FOLDER],
                              stdout='bidswrapps.log',
@@ -225,6 +234,13 @@ class BidsWrappsScript(SessionBasedScript):
         self.add_param("--image_id", type=str, dest="image_id",
                        help="Type of science cloud image for execution. If none is specified, "
                             "image_id is determined by config file.")
+        self.add_param("--dont_wait_for_nfs", help="Don't wait for nfs before running docker", dest="wait_for_nfs",
+                       action='store_false', default=True)
+        self.add_param("--nfs_search_path", help="Path that should be waited for. Default:/data.nfs",
+                       default="/data.nfs")
+
+        self.add_param('-v', '--version', action='version',
+                       version='Bidswrapps version {}'.format(__version__))
 
     def pre_run(self):
         """
@@ -336,6 +352,8 @@ class BidsWrappsScript(SessionBasedScript):
                     self.params.volumes,
                     self.params.input_ro,
                     self.params.docker_opt,
+                    self.params.wait_for_nfs,
+                    self.params.nfs_search_path,
                     **extra_args))
 
         elif self.params.analysis_level.startswith("group"):
@@ -354,6 +372,8 @@ class BidsWrappsScript(SessionBasedScript):
                 self.params.volumes,
                 self.params.input_ro,
                 self.params.docker_opt,
+                self.params.wait_for_nfs,
+                self.params.nfs_search_path,
                 **extra_args))
 
         return tasks
