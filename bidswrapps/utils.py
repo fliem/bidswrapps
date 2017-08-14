@@ -12,6 +12,8 @@ from pkg_resources import resource_filename, Requirement
 
 from bidswrapps import __version__
 
+import logging
+logging.basicConfig()
 
 def compile_run_cmd(analysis_level, bids_input_folder, bids_output_folder, docker_image, subject_id="",
                     docker_volumes=[], runscript_args="", runscript_cmd="", input_ro=True, docker_opt=""):
