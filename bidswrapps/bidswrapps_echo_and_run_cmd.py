@@ -104,4 +104,4 @@ if __name__ == '__main__':
     args = parser.parse_args()
 
     cmd = ' '.join(args.cmd)
-    sys.exit(echo_and_run_cmd(cmd, "", args.wait_for_nfs, args.nfs_search_path))
+    sys.exit(echo_and_run_cmd(cmd, "") #, args.wait_for_nfs, args.nfs_search_path))
