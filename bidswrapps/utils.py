@@ -323,6 +323,7 @@ class BidsWrappsScript(SessionBasedScript):
 
     def new_tasks(self, extra):
         """
+        - write session path to output for check logs
         - Builds subject list (from cmd line args or input folder)
         - Creates output folder
         - If participant level analysis
@@ -330,6 +331,14 @@ class BidsWrappsScript(SessionBasedScript):
         - If group level analysis
             For entire study, create one instance of GniftApplication
         """
+
+        # create link to session path in output path
+        out_path = self.params.output
+        if not os.path.isdir(out_path):
+            os.makedirs(out_path)
+        info_file = os.path.join(out_path, ".session_path")
+        with open(info_file, "w") as fi:
+            fi.write(self.params.session)
 
         tasks = []
         subject_list = self.get_subject_list()
