@@ -112,9 +112,11 @@ class BidsWrappsApplication(Application):
         if nfs_search_path:
             add_opts += "--nfs_search_path {}".format(nfs_search_path)
 
+        arguments = "python ./{scr} --cmd {cmd} {add_opts}".format(scr=inputs[wrapper], cmd=cmd,
+                                                                                      add_opts=add_opts)
+        print("XXXX", arguments)
         Application.__init__(self,
-                             arguments="python ./{scr} --cmd {cmd} {add_opts}".format(scr=inputs[wrapper], cmd=cmd,
-                                                                                      add_opts=add_opts),
+                             arguments=arguments,
                              inputs=inputs,
                              outputs=[DEFAULT_REMOTE_OUTPUT_FOLDER],
                              stdout='bidswrapps.log',

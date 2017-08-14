@@ -70,6 +70,8 @@ def echo_and_run_cmd(cmd, tree_dir="", wait_for_nfs=True, nfs_search_path="/data
     if ret != 0:
         print("[failed]")
         print_stars()
+        print("\n".join(out_list))
+        print_stars()
         print("[failed]:\n%s" % cmd)
         print("Execution failed with exit code: %d" % ret)
         print_stars()
