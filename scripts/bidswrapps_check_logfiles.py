@@ -7,7 +7,7 @@ from bidswrapps.bidswrapps_echo_and_run_cmd import print_stars
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Checks bidsapps logfiles')
-    parser.add_argument('logfiles_dir', default=os.getcwd(),
+    parser.add_argument('logfiles_dir', nargs='*', default=os.getcwd(),
                         help='The directory with the bidsapps logfile folders. Default: current directory')
     args = parser.parse_args()
 
