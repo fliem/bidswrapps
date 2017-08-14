@@ -261,9 +261,9 @@ class BidsWrappsScript(SessionBasedScript):
         out_path = self.params.output
         if not os.path.isdir(out_path):
             os.makedirs(out_path)
-        info_file = os.path.join(out_path, ".session_path")
+        info_file = os.path.join(out_path, ".session_path").replace("NAME", "")
         with open(info_file, "w") as fi:
-            fi.write(self.params.session)
+            fi.write(os.path.abspath(self.params.session))
 
 
     def get_subject_list(self):
