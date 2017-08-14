@@ -43,12 +43,16 @@ if __name__ == "__main__":
     if os.path.exists(info_file):
         with open(info_file) as fi:
             session_path = fi.read()
-        print("Session path is {}".format(session_path))
-        cmd = "gstat -s {session_path} -v -u -l failed".format(session_path)
-        print("Checking for failed jobs {}\n Check for jobs that have something other that TERMINATED... at "
-              "Info".format(cmd))
+        if os.path.isdir(session_path):
+            print("Session path is {}".format(session_path))
+            cmd = "gstat -s {session_path} -v -u -l failed".format(session_path)
+            print("Checking for failed jobs {}\n Check for jobs that have something other that TERMINATED... at "
+                  "Info".format(cmd))
 
-        os.system(cmd)
+            os.system(cmd)
+        else:
+            print("Session path not found. Skipping gstat {}".format(session_path))
+
 
     else:
-        print("Not checking session since {} not found".format(info_file))
+        print("session_path file {} in log dir not foud. Skipping gstat.".format(info_file))
