@@ -45,7 +45,7 @@ if __name__ == "__main__":
             session_path = fi.read()
         if os.path.isdir(session_path):
             print("Session path is {}".format(session_path))
-            cmd = "gstat -s {session_path} -v -u -l failed".format(session_path)
+            cmd = "gstat -s {} -v -u -l failed".format(session_path)
             print("Checking for failed jobs {}\n Check for jobs that have something other that TERMINATED... at "
                   "Info".format(cmd))
 
