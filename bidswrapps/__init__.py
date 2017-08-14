@@ -1,6 +1,7 @@
-__version__ = "0.1.13.dev"
+__version__ = "0.1.14.dev"
 
 __changelog__ ="""
+0.1.13dev added gstat RUNNING to check logfiles
 0.1.13dev added gstat to check logfiles
 0.1.12dev fix version arg issue
 0.1.11dev added wait for nfs

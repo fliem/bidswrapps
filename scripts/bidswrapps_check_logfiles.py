@@ -45,6 +45,7 @@ if __name__ == "__main__":
     print_stars()
     print("\n")
     print_stars()
+    print("Checking logfiles of TERMNIATED jobs")
 
     files = glob("*/*.log")
     good = []
