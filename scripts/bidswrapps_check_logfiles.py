@@ -39,6 +39,7 @@ if __name__ == "__main__":
     print("%s ok jobs" % len(good))
     print("%s bad jobs" % len(bad))
 
+    print_stars()
     info_file = os.path.join(log_dir, ".session_path")
     if os.path.exists(info_file):
         with open(info_file) as fi:
@@ -56,3 +57,4 @@ if __name__ == "__main__":
 
     else:
         print("session_path file {} in log dir not foud. Skipping gstat.".format(info_file))
+    print_stars()
