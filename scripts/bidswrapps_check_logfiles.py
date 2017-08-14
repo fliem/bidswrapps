@@ -14,6 +14,38 @@ if __name__ == "__main__":
     log_dir = os.path.abspath(args.logfiles_dir)
     os.chdir(log_dir)
 
+
+    # Print gstat outputs
+    print_stars()
+    info_file = os.path.join(log_dir, ".session_path")
+    if os.path.exists(info_file):
+        with open(info_file) as fi:
+            session_path = fi.read()
+        if os.path.isdir(session_path):
+            # RUNNING jobs
+            print("Session path is {}".format(session_path))
+            cmd = "gstat -s {} -v -u -l RUNNING".format(session_path)
+            print("Checking for RUNNING jobs {}".format(cmd))
+            os.system(cmd)
+            print_stars()
+            print("\n")
+
+            # failed jobs
+            print_stars()
+            print("Printing failed jobs".format(session_path))
+            cmd = "gstat -s {} -v -u -l failed".format(session_path)
+            print("Checking for failed jobs {}\n Check for jobs that have something other that TERMINATED... at "
+                  "Info".format(cmd))
+            os.system(cmd)
+        else:
+            print("Session path not found. Skipping gstat {}".format(session_path))
+    else:
+        print("session_path file {} in log dir not foud. Skipping gstat.".format(info_file))
+
+    print_stars()
+    print("\n")
+    print_stars()
+
     files = glob("*/*.log")
     good = []
     bad = []
@@ -38,23 +70,4 @@ if __name__ == "__main__":
 
     print("%s ok jobs" % len(good))
     print("%s bad jobs" % len(bad))
-
-    print_stars()
-    info_file = os.path.join(log_dir, ".session_path")
-    if os.path.exists(info_file):
-        with open(info_file) as fi:
-            session_path = fi.read()
-        if os.path.isdir(session_path):
-            print("Session path is {}".format(session_path))
-            cmd = "gstat -s {} -v -u -l failed".format(session_path)
-            print("Checking for failed jobs {}\n Check for jobs that have something other that TERMINATED... at "
-                  "Info".format(cmd))
-
-            os.system(cmd)
-        else:
-            print("Session path not found. Skipping gstat {}".format(session_path))
-
-
-    else:
-        print("session_path file {} in log dir not foud. Skipping gstat.".format(info_file))
     print_stars()
