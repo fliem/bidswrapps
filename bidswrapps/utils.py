@@ -12,8 +12,6 @@ from pkg_resources import resource_filename, Requirement
 
 from bidswrapps import __version__
 
-# import logging
-# logging.basicConfig()
 
 def compile_run_cmd(analysis_level, bids_input_folder, bids_output_folder, docker_image, subject_id="",
                     docker_volumes=[], runscript_args="", runscript_cmd="", input_ro=True, docker_opt=""):
@@ -92,8 +90,8 @@ class BidsWrappsApplication(Application):
                  docker_volumes=[],
                  input_ro=True,
                  docker_opt="",
-                 # wait_for_nfs=True,
-                 # nfs_search_path="/data.nfs",
+                 wait_for_nfs=True,
+                 nfs_search_path="/data.nfs",
                  **extra_args):
         self.output_dir = []
 
@@ -108,16 +106,15 @@ class BidsWrappsApplication(Application):
         cmd = compile_run_cmd(analysis_level, bids_input_folder, bids_output_folder, docker_image, subject_id,
                               docker_volumes, runscript_args, runscript_cmd, input_ro, docker_opt)
 
-        # add_opts = ""
-        # if not wait_for_nfs:
-        #     add_opts += "--dont_wait_for_nfs "
-        # if nfs_search_path:
-        #     add_opts += "--nfs_search_path {}".format(nfs_search_path)
+        add_opts = ""
+        if not wait_for_nfs:
+            add_opts += "--dont_wait_for_nfs "
+        if nfs_search_path:
+            add_opts += "--nfs_search_path {}".format(nfs_search_path)
 
-        #arguments = "python ./{scr} --cmd {cmd} {add_opts}".format(scr=inputs[wrapper]), cmd=cmd,
-                                                                                        # add_opts=add_opts)
-        arguments = "python ./{scr} {cmd}".format(scr=inputs[wrapper], cmd=cmd)
-        print("XXXX", arguments)
+        arguments = 'python ./{scr} --cmd "{cmd}" {add_opts}'.format(scr=inputs[wrapper], cmd=cmd,
+                                                                                      add_opts=add_opts)
+        print("Submitting {}".format(arguments))
         Application.__init__(self,
                              arguments=arguments,
                              inputs=inputs,
@@ -244,7 +241,7 @@ class BidsWrappsScript(SessionBasedScript):
         self.add_param("--nfs_search_path", help="Path that should be waited for. Default:/data.nfs",
                        default="/data.nfs")
 
-        self.add_param('-v', '--version', action='version',
+        self.add_param('--bidswrapps_version', action='version',
                        version='Bidswrapps version {}'.format(__version__))
 
     def pre_run(self):
@@ -357,8 +354,8 @@ class BidsWrappsScript(SessionBasedScript):
                     self.params.volumes,
                     self.params.input_ro,
                     self.params.docker_opt,
-                    # self.params.wait_for_nfs,
-                    # self.params.nfs_search_path,
+                    self.params.wait_for_nfs,
+                    self.params.nfs_search_path,
                     **extra_args))
 
         elif self.params.analysis_level.startswith("group"):
@@ -377,8 +374,8 @@ class BidsWrappsScript(SessionBasedScript):
                 self.params.volumes,
                 self.params.input_ro,
                 self.params.docker_opt,
-                # self.params.wait_for_nfs,
-                # self.params.nfs_search_path,
+                self.params.wait_for_nfs,
+                self.params.nfs_search_path,
                 **extra_args))
 
         return tasks

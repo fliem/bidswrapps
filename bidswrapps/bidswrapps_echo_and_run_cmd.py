@@ -3,9 +3,7 @@ import subprocess
 import sys
 import os
 import time
-#import argparse
-# import logging
-# logging.basicConfig()
+import argparse
 
 def runme(command):
     """
@@ -95,19 +93,13 @@ def echo_and_run_cmd(cmd, tree_dir="", wait_for_nfs=True, nfs_search_path="/data
 
 if __name__ == '__main__':
 
-    # parser = argparse.ArgumentParser()
-    # parser.add_argument('--cmd', required=True, nargs="+")
-    # parser.add_argument("--dont_wait_for_nfs", help="Don't wait for nfs before running docker", dest="wait_for_nfs",
-    #                action='store_false', default=True)
-    # parser.add_argument("--nfs_search_path", help="Path that should be waited for. Default:/data.nfs",
-    #                default="/data.nfs")
-    # args = parser.parse_args()
-    #
-    # cmd = ' '.join(args.cmd)
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--cmd', required=True, nargs="+")
+    parser.add_argument("--dont_wait_for_nfs", help="Don't wait for nfs before running docker", dest="wait_for_nfs",
+                   action='store_false', default=True)
+    parser.add_argument("--nfs_search_path", help="Path that should be waited for. Default:/data.nfs",
+                   default="/data.nfs")
+    args = parser.parse_args()
 
-
-    if (len(sys.argv) < 2):
-        sys.exit(Usage())
-    cmd = ' '.join(sys.argv[1:])
-    sys.exit(echo_and_run_cmd(cmd))
-    #sys.exit(echo_and_run_cmd(cmd, "") #, args.wait_for_nfs, args.nfs_search_path))
+    cmd = ' '.join(args.cmd)
+    sys.exit(echo_and_run_cmd(cmd, "", args.wait_for_nfs, args.nfs_search_path))
