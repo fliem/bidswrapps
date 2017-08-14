@@ -4,8 +4,8 @@ import sys
 import os
 import time
 #import argparse
-import logging
-logging.basicConfig()
+# import logging
+# logging.basicConfig()
 
 def runme(command):
     """
