@@ -258,10 +258,10 @@ class BidsWrappsScript(SessionBasedScript):
             self._core.resources['S3ITSC'].bidswrapps_image_id = self.params.image_id
 
         # create link to session path in output path
-        out_path = self.params.output
+        out_path = self.params.output.replace("NAME", "")
         if not os.path.isdir(out_path):
             os.makedirs(out_path)
-        info_file = os.path.join(out_path, ".session_path").replace("NAME", "")
+        info_file = os.path.join(out_path, ".session_path")
         with open(info_file, "w") as fi:
             fi.write(os.path.abspath(self.params.session))
 
