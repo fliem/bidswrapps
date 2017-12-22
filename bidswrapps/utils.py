@@ -143,7 +143,7 @@ class BidsWrappsScript(SessionBasedScript):
     of all known jobs is printed.
 
     Options can specify a maximum number of jobs that should be in
-    'SUBMITTED' or 'RUNNING' state; ``gnift`` will delay submission of
+    'SUBMITTED' or 'RUNNING' state; ``bidswrapps`` will delay submission of
     newly-created jobs so that this limit is never exceeded.
 
     This class is called when bidswrapps command is executed.
@@ -199,7 +199,7 @@ class BidsWrappsScript(SessionBasedScript):
 
         self.add_param("--runscript_cmd", help='If docker image has now entrypoint, docker execution '
                                                'command can be given here (under ""). '
-                                               'E.g.: --docker_exec_cmd "python /code/dosomething.py')
+                                               'E.g.: --docker_exec_cmd "python /code/dosomething.py"')
         self.add_param("-ra", "--runscript_args", type=str, dest="runscript_args", default=None,
                        help='BIDS Apps: add application-specific arguments '
                             'passed to the runscripts in qotation marks: '
