@@ -4,7 +4,7 @@ import stat
 import sys
 
 import gc3libs
-from bids.grabbids import BIDSLayout
+from bids.layout import BIDSLayout
 from gc3libs import MB, Application
 from gc3libs.cmdline import SessionBasedScript, positive_int
 from gc3libs.quantity import Memory, GB
