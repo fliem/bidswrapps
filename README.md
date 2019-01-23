@@ -29,13 +29,12 @@ nework has the address <private_network_ip>.
 
 * Update `~/.gc3/gc3pie.conf` so that it includes:
 
-  user_data=#!/bin/sh -x
-         cat <<__EOF__ | sudo tee -a /etc/fstab
-         <nfs_ip>:/srv/nfs /data.nfs nfs _netdev,auto,x-systemd.automount,x-systemd.device-timeout=1min,x-systemd.idle-timeout=10min 0 0
-         __EOF__
-         sudo systemctl daemon-reload
-         sudo systemctl restart remote-fs.target
-
+        user_data=#!/bin/sh -x
+               cat <<__EOF__ | sudo tee -a /etc/fstab
+               <nfs_ip>:/srv/nfs /data.nfs nfs _netdev,auto,x-systemd.automount,x-systemd.device-timeout=1min,x-systemd.idle-timeout=10min 0 0
+               __EOF__
+               sudo systemctl daemon-reload
+               sudo systemctl restart remote-fs.target
 
 
 Note that **<nfs_ip>** needs to be replaced with the ip of the nfs.
