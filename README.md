@@ -29,22 +29,16 @@ nework has the address <private_network_ip>.
 
 * Update `~/.gc3/gc3pie.conf` so that it includes:
 
+  user_data=#!/bin/sh -x
+         cat <<__EOF__ | sudo tee -a /etc/fstab
+         <nfs_ip>:/srv/nfs /data.nfs nfs _netdev,auto,x-systemd.automount,x-systemd.device-timeout=1min,x-systemd.idle-timeout=10min 0 0
+         __EOF__
+         sudo systemctl daemon-reload
+         sudo systemctl restart remote-fs.target
 
-        user_data=#!/bin/sh -x
-               cat > /etc/network/if-up.d/mount-nfs <<__EOF__
-               #!/bin/sh
-               if ! (ip route | fgrep -q <private_network_ip>); then
-                   exit 0
-               fi
-               sudo apt-get install --yes --force-yes nfs-common
-               sudo mkdir -pv /data.nfs
-               sudo chown ubuntu:ubuntu /data.nfs
-               sudo mount -t nfs <nfs_ip>:/srv/nfs /data.nfs
-               __EOF__
-               chmod +x /etc/network/if-up.d/mount-nfs
 
-Note that **<private_network_ip>** needs to be replaced with the ip of the
-private network, **<nfs_ip>** with the ip of the nfs.
+
+Note that **<nfs_ip>** needs to be replaced with the ip of the nfs.
 
 * Optionally, `~/.gc3/gc3pie.conf` can also include default values
 for image_id and instance_type.
@@ -222,4 +216,3 @@ for image_id and instance_type.
     --instance_type 4cpu-16ram-hpc \
     -s ~/cloudsessions/tracula -o /data.nfs/project/logfiles/tracula \
     -C 15 -c 4
-
