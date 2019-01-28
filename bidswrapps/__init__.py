@@ -1,6 +1,7 @@
-__version__ = "0.1.16.deva"
+__version__ = "0.1.17.dev"
 
 __changelog__ ="""
+0.1.17dev fix fetch output issues
 0.1.16dev update bids layout import
 0.1.15dev cleanupt mkdir log
 0.1.14dev added gstat RUNNING to check logfiles

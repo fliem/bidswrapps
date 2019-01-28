@@ -118,8 +118,8 @@ class BidsWrappsApplication(Application):
         Application.__init__(self,
                              arguments=arguments,
                              inputs=inputs,
-                             outputs=[DEFAULT_REMOTE_OUTPUT_FOLDER],
-                             stdout=os.path.join(DEFAULT_REMOTE_OUTPUT_FOLDER, 'bidswrapps.log'),
+                             outputs=[],#[DEFAULT_REMOTE_OUTPUT_FOLDER],
+                             stdout='bidswrapps.log',
                              join=True,
                              **extra_args)
 
