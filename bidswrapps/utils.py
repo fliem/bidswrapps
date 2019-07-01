@@ -92,7 +92,6 @@ class BidsWrappsApplication(Application):
                  docker_opt="",
                  wait_for_nfs=True,
                  nfs_search_path="/data.nfs",
-                 no_outputdir_check=False,
                  **extra_args):
         self.output_dir = []
 
@@ -331,7 +330,7 @@ class BidsWrappsScript(SessionBasedScript):
                      os.stat(self.params.bids_output_folder).st_mode | stat.S_IWOTH)
 
         # check if output folder has others write permission
-        if not self.no_outputdir_check:
+        if not self.params.no_outputdir_check:
             if not os.stat(self.params.bids_output_folder).st_mode & stat.S_IWOTH:
                 raise OSError("BIDS output folder %s \nothers need write permission. "
                               "Stopping." % self.params.bids_output_folder)
@@ -371,7 +370,6 @@ class BidsWrappsScript(SessionBasedScript):
                     self.params.docker_opt,
                     self.params.wait_for_nfs,
                     self.params.nfs_search_path,
-                    self.no_outputdir_check,
                     **extra_args))
 
         elif self.params.analysis_level.startswith("group"):

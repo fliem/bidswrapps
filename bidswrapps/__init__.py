@@ -1,6 +1,7 @@
-__version__ = "0.1.19.dev"
+__version__ = "0.1.20.dev"
 
 __changelog__ ="""
+0.1.20dev fix
 0.1.19dev output permission check
 0.1.17dev fix fetch output issues
 0.1.16dev update bids layout import
