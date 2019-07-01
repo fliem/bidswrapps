@@ -92,6 +92,7 @@ class BidsWrappsApplication(Application):
                  docker_opt="",
                  wait_for_nfs=True,
                  nfs_search_path="/data.nfs",
+                 no_outputdir_check=False,
                  **extra_args):
         self.output_dir = []
 
@@ -240,6 +241,8 @@ class BidsWrappsScript(SessionBasedScript):
                        action='store_false', default=True)
         self.add_param("--nfs_search_path", help="Path that should be waited for. Default:/data.nfs",
                        default="/data.nfs")
+        self.add_param("--no-outputdir-check", help="Do not check permissions of output folder",
+                       action='store_true', default=False)
 
         self.add_param('--bidswrapps_version', action='version',
                        version='Bidswrapps version {}'.format(__version__))
@@ -328,9 +331,10 @@ class BidsWrappsScript(SessionBasedScript):
                      os.stat(self.params.bids_output_folder).st_mode | stat.S_IWOTH)
 
         # check if output folder has others write permission
-        if not os.stat(self.params.bids_output_folder).st_mode & stat.S_IWOTH:
-            raise OSError("BIDS output folder %s \nothers need write permission. "
-                          "Stopping." % self.params.bids_output_folder)
+        if not self.no_outputdir_check:
+            if not os.stat(self.params.bids_output_folder).st_mode & stat.S_IWOTH:
+                raise OSError("BIDS output folder %s \nothers need write permission. "
+                              "Stopping." % self.params.bids_output_folder)
 
     def new_tasks(self, extra):
         """
@@ -367,6 +371,7 @@ class BidsWrappsScript(SessionBasedScript):
                     self.params.docker_opt,
                     self.params.wait_for_nfs,
                     self.params.nfs_search_path,
+                    self.no_outputdir_check,
                     **extra_args))
 
         elif self.params.analysis_level.startswith("group"):
