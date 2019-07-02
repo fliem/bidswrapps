@@ -113,16 +113,15 @@ class BidsWrappsApplication(Application):
             add_opts += "--nfs_search_path {}".format(nfs_search_path)
 
         arguments = 'python ./{scr} --cmd "{cmd}" {add_opts}'.format(scr=inputs[wrapper], cmd=cmd,
-                                                                                      add_opts=add_opts)
+                                                                     add_opts=add_opts)
         print("Submitting {}".format(arguments))
         Application.__init__(self,
                              arguments=arguments,
                              inputs=inputs,
-                             outputs=[],#[DEFAULT_REMOTE_OUTPUT_FOLDER],
+                             outputs=[],  # [DEFAULT_REMOTE_OUTPUT_FOLDER],
                              stdout='bidswrapps.log',
                              join=True,
                              **extra_args)
-
 
         #
 
@@ -242,6 +241,8 @@ class BidsWrappsScript(SessionBasedScript):
                        default="/data.nfs")
         self.add_param("--no-outputdir-check", help="Do not check permissions of output folder",
                        action='store_true', default=False)
+        self.add_param("--no-set-outputdir-perm", help="Do not change outputdir permission",
+                       action='store_true', default=False)
 
         self.add_param('--bidswrapps_version', action='version',
                        version='Bidswrapps version {}'.format(__version__))
@@ -266,7 +267,6 @@ class BidsWrappsScript(SessionBasedScript):
         info_file = os.path.join(out_path, ".session_path")
         with open(info_file, "w") as fi:
             fi.write(os.path.abspath(self.params.session))
-
 
     def get_subject_list(self):
         """
@@ -326,8 +326,9 @@ class BidsWrappsScript(SessionBasedScript):
         if not os.path.exists(self.params.bids_output_folder):
             os.makedirs(self.params.bids_output_folder)
             # add write perm for others
-            os.chmod(self.params.bids_output_folder,
-                     os.stat(self.params.bids_output_folder).st_mode | stat.S_IWOTH)
+            if not self.params.no_set_outputdir_perm:
+                os.chmod(self.params.bids_output_folder,
+                         os.stat(self.params.bids_output_folder).st_mode | stat.S_IWOTH)
 
         # check if output folder has others write permission
         if not self.params.no_outputdir_check:
