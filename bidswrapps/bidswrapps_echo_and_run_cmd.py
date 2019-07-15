@@ -86,7 +86,11 @@ def echo_and_run_cmd(cmd, tree_dir="", wait_for_nfs=True, nfs_search_path="/data
         print("[ok]")
         print_stars()
         print("[ok]:\n%s \n" % cmd)
-        print(stdout)
+        print_stars()
+        print("Output message:\n%s" % stdout)
+        print_stars()
+        print("Error message:\n%s" % stderr)
+        print_stars()
     print("[COMMAND]:\n'%s' " % cmd)
     return ret
 

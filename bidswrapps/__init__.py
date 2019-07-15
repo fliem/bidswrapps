@@ -1,6 +1,7 @@
-__version__ = "0.1.22.dev"
+__version__ = "0.1.23.dev"
 
 __changelog__ ="""
+0.1.23.dev print stderr if ret=0
 0.1.22.dev inc nfs timeout
 0.1.21dev --no-set-outputdir-perm
 0.1.20dev fix
