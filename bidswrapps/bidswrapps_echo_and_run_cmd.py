@@ -39,7 +39,7 @@ def echo_and_run_cmd(cmd, tree_dir="", wait_for_nfs=True, nfs_search_path="/data
     if wait_for_nfs:
         nfs_found = False
         wait_time = 10
-        timeout = 100
+        timeout = 200
         count_time = 0
         out_list.append("Looking for {} ...".format(nfs_search_path))
         while (not nfs_found) and (count_time < timeout):
